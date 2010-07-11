@@ -1,0 +1,1472 @@
+package culebra.syntax;
+
+// Declaración de importaciones
+//(No modificar las proporcionadas. Se pueden agregar mas)
+
+import java_cup.runtime.Symbol;
+import java.util.*;
+import java.io.*;
+
+import culebra.*;
+import culebra.lexical.Token;
+import culebra.syntax.*;
+import culebra.arch.*;
+import culebra.arch.sentences.*;
+import culebra.arch.sentences.io.*;
+import culebra.arch.expressions.*;
+import culebra.semantic.*;
+import culebra.arch.types.*;
+import culebra.arch.variable.*;
+import culebra.arch.variable.behaviour.*;
+import culebra.arch.variable.storage.*;
+import culebra.arch.variable.factories.*;
+
+action code {:
+    SyntaxErrorManager  errorManager = new SyntaxErrorManager();
+    ModuleManager   moduleManager = new ModuleManager();
+    FunctionManager functionManager = new FunctionManager();
+    VariableManager globalVariables = new VariableManager("global");
+    VariableManager currentVariables = null;
+    Stack           stackIterator = new Stack();
+
+    public Variable getVariable(String name) {
+        if (currentVariables.hasVariable(name))
+            return currentVariables.getVariable(name);
+
+        if (globalVariables.hasVariable(name))
+            return globalVariables.getVariable(name);
+
+         return null;
+    }
+:}
+
+parser code {:
+	public void syntax_error(Symbol symbol)
+	{
+	    Token token = (Token) symbol.value;
+	    SyntaxErrorManager.syntaxError ("Error sintactico", token);
+	}
+
+	public void unrecovered_syntax_error(java_cup.runtime.Symbol symbol)
+	{
+		Token token = (Token) symbol.value;
+	    SyntaxErrorManager.syntaxFatalError ("Error fatal", token);
+	}
+
+
+:}
+
+// Declaración de terminales
+
+terminal Token INTEGER;
+terminal Token STRING;
+terminal Token ID;
+
+// KEYWORDS
+terminal Token CASE;
+terminal Token DEFINE;
+terminal Token BREAK;
+terminal Token IMPORT;
+terminal Token MODULE;
+terminal Token FLUSH;
+terminal Token DELETE;
+
+terminal Token ENUM;
+//terminal Token PRINTF;
+terminal Token ESCRIBEINT;
+terminal Token SWITCH;
+terminal Token WHILE;
+terminal Token FOR;
+terminal Token DEFAULT;
+terminal Token MAIN;
+terminal Token STRUCT;
+terminal Token RETURN;
+terminal Token CONTINUE;
+terminal Token IF;
+terminal Token ELSE;
+terminal Token TYPEDEF;
+
+// MODIFICATORS
+terminal Token TMP;
+
+// TYPES
+terminal Token INT;
+terminal Token STR;
+terminal Token FLT;
+terminal Token VOID;
+terminal Token VAR;
+
+// DELIMITADORES
+terminal Token LPAREN;
+terminal Token RPAREN;
+
+terminal Token LCURLY;
+terminal Token RCURLY;
+terminal Token COMA;
+terminal Token SEMICOLON;
+terminal Token COLON;
+terminal Token ANDPERSAND;
+
+////////////
+// Operadores
+//
+// Aritmeticos
+terminal Token PLUS;
+terminal Token MINUS;
+terminal Token MUL;
+terminal Token DIV;
+
+// Relacionales
+terminal Token LESS;
+terminal Token GREAT;
+terminal Token LESSEQUAL;
+terminal Token GREATEQUAL;
+terminal Token EQUAL;
+terminal Token NOEQUAL;
+
+// Logicos
+terminal Token AND;
+terminal Token OR;
+terminal Token NOT;
+
+// Especiales
+terminal Token PLUSPLUS;
+terminal Token MINUSMINUS;
+
+// Asignacion
+terminal Token ASSIG;
+terminal Token ADDASSIG;
+terminal Token SUBSASSIG;
+
+// I/O Operators
+terminal Token PRINTLN;
+terminal Token PRINT;
+terminal Token READ;
+
+// Access
+terminal Token DOT;
+terminal Token ITER;
+
+// REGEX
+terminal Token REGEX;
+
+// Declaraci�n de no terminales
+// no modificar los propuestos
+
+non terminal ModuleManager   	program;
+non terminal                	programModule;
+
+non terminal String             importHeader;
+non terminal String             moduleHeader;
+non terminal ModuleFunction     moduleFunctionName;
+
+non terminal                    body;
+non terminal                    declaration;
+
+non terminal                    endLine;
+
+non terminal                    dataType;
+non terminal List               dataParamList;
+non terminal DataBehaviour      dataBehaviour;
+non terminal List               behaviourParamList;
+non terminal BehaviourParam     behaviourParam;
+non terminal VarAttr            varAttr;
+
+non terminal                    varGlobal;
+non terminal List               varGlobalList;
+//BEFORE REGEX non terminal String             varGlobalId;
+non terminal VarField           varGlobalId;
+
+non terminal List               varListLocal;
+non terminal List               varLocal;
+non terminal List               varLocalList;
+non terminal Sentence           varLocalId;
+
+non terminal Type               type;
+non terminal String             modificator;
+
+non terminal Function           function;
+non terminal List               functionBodyList;
+
+non terminal List               functionArgsList;
+non terminal Variable           functionOneArg;
+
+non terminal FunctionCall       functionCall;
+non terminal List               functionCallArgsList;
+non terminal Expr               functionCallOneArg;
+
+non terminal SentencesBlock     sentencesBlock;
+non terminal Sentence           sentences;
+non terminal List               sentencesList;
+
+non terminal Sentence           assignSentence;
+non terminal AddAssig          	addAssig;
+non terminal SubAssig         	subAssig;
+non terminal While              whileSentence;
+non terminal For                forSentence;
+non terminal Sentence           forPre, forLoop;
+non terminal Expr               forCondition;
+non terminal IfSentence			ifSentence;
+non terminal Return				returnSentence;
+
+non terminal Println            println;
+non terminal Print              print;
+non terminal Read               read;
+
+non terminal VariableIterator   iterator;
+non terminal FlushVariable      flushVariable;
+
+non terminal Expr               expr;
+
+non terminal Variable           id2Var;
+non terminal List               id2VarList;
+
+//// OLD VERSION
+
+non terminal                    seccOp;
+non terminal                    seccOpEnd;
+
+non terminal                    declaracion;
+non terminal                    declaracionEnd;
+
+
+
+
+non terminal                    varGlobalEnd;
+
+
+
+non terminal                    funcionDef;
+non terminal                    tipoFunc;
+
+non terminal                    funcParam;
+non terminal                    funcParamEnd;
+
+non terminal                    localVar;
+non terminal                    localType;
+non terminal                    sentencesEnd;
+non terminal                    sentencesBlockClosed;
+
+non terminal                    sentencesBlockClosedEnd;
+
+non terminal                    tipoDecl;
+non terminal                    tipoDeclEnd;
+
+non terminal List               enumeraDef;
+non terminal String             enumeraDefEnd;
+non terminal                    registroDef;
+non terminal                    registroDefEnd;
+non terminal                    registroDefDecl;
+non terminal                    regMember;
+
+non terminal VarList            varDeclaracion;
+non terminal Var                varDeclaracionEnd;
+
+non terminal                    sentenceOpen;
+non terminal                    sentenceClosed;
+non terminal                    ifSentenceEnd;
+
+non terminal                    switchSentence;
+
+
+non terminal                    funcCall;
+non terminal                    funcCallArgs;
+non terminal                    funcCallArgsEnd;
+
+non terminal                    assigSentence;
+non terminal                    assigSentenceEnd;
+
+non terminal                    alternativas;
+non terminal                    alterBody;
+non terminal                    alterBodyEnd;
+non terminal                    alterCaso;
+non terminal                    alterCasoDefault;
+
+non terminal                    mientras;
+
+non terminal                    para;
+
+precedence  left    DOT,
+                    LPAREN,
+                    RPAREN;
+
+precedence  left    PLUSPLUS,
+                    MINUSMINUS,
+                    NOT;
+
+precedence  left    MUL,
+                    DIV;
+
+precedence  left    LESS,
+                    GREAT,
+					LESSEQUAL,
+                    GREATEQUAL;
+					
+precedence  left    EQUAL,
+                    NOEQUAL;
+
+precedence  left    AND;
+
+precedence  left    OR;
+
+precedence  left    PLUS,
+                    MINUS;
+					
+precedence	left	ELSE;
+
+///////////////
+// Production rules declaration
+//
+start with program;
+
+program ::= 
+programModule   
+{:
+    moduleManager.addVariableManager(globalVariables);
+    moduleManager.setFunctionManager(functionManager);
+
+    RESULT = moduleManager;
+:}
+  ;
+
+programModule ::=
+moduleHeader:mh importHeader:ih
+{:
+    if (mh != null)
+        moduleManager.setName(mh);
+    else 
+        moduleManager.setName("main");
+
+    if (ih != null) {
+        ModuleManager mm = null;
+
+        mm = ModuleParser.parse(ih);
+
+        moduleManager.addImportedModuleManager(mm);
+    }
+//System.out.println("primera parte");
+:}
+body
+;
+
+importHeader ::=
+IMPORT STRING:file endLine
+{:
+    RESULT = file.getLexeme();
+:}
+|
+{:
+    RESULT = null;
+:}
+;
+
+moduleHeader ::=
+MODULE ID:file endLine
+{:
+    RESULT = file.getLexeme();
+:}
+|
+{:
+    RESULT = null;
+:}
+;
+
+body ::=
+body declaration
+| declaration
+;
+
+endLine ::=
+SEMICOLON
+|
+;
+declaration ::=
+//varGlobal
+//| dataType
+dataType
+| function:f
+{:
+    functionManager.addFunction(f);
+:}
+;
+
+/////////
+// 
+// XXX: } File.XML() => The handler will use the name to match XML tags
+// XXX: } Socket.TCP.XML()
+// XXX: } DB.MySQL() + Socket.TCP()
+// XXX: } File("sjkdf", a);
+
+dataType ::=
+VAR ID:id varAttr:va LCURLY dataParamList:dpl RCURLY dataBehaviour:db endLine
+{:
+    BehaviourVariable bv = new BehaviourVariable(id.getLexeme());
+    StorageFactory sf = StorageFactory.getFactory(db, bv);
+    if (db.isParamListEmpty())
+        bv.addStorage(sf.createStorage(va));
+    else
+        bv.addStorage(sf.createStorage(va, db.getParamList()));
+    {
+        Map m = new LinkedHashMap();
+        Iterator iter = dpl.iterator();
+
+        while (iter.hasNext()) {
+            VarField    tmpField = (VarField) iter.next();
+            String  tmp = tmpField.getToken();
+            //Variable    var = new SimpleVariable(tmpField);
+            //var.addStorage(new RAMStorage());
+			Variable var = new ProxyVariable(tmpField.getToken());
+            m.put(tmp, var);
+        }
+        bv.setVariables(m);
+    }
+
+    globalVariables.addVariable((Variable)bv);
+:}
+;
+
+//XXX Refactor this to be more general.
+varAttr ::=
+LPAREN behaviourParamList:bpl RPAREN
+{:
+    VarAttr va = null;
+
+    if (bpl != null && bpl.size() > 0) {
+        va = new VarAttr(bpl);
+    }
+    else {
+        va = new VarAttr();
+    }
+
+    RESULT = va;
+:}
+|
+{:
+    VarAttr va = new VarAttr();
+
+    RESULT = va;
+:}
+;
+
+dataParamList ::=
+dataParamList:dpl varGlobalList:vgl
+{:
+    List l = new LinkedList();
+    l.addAll(dpl);
+    l.addAll(vgl);
+
+    RESULT = l;
+:}
+| varGlobalList:vgl
+{:
+    RESULT = vgl;
+:}
+;
+
+dataBehaviour ::=
+ID:id LPAREN behaviourParamList:bpl RPAREN
+{:
+    DataBehaviour db = new DataBehaviour(id.getLexeme());
+
+    if (bpl != null)
+        db.setParamList(bpl);
+
+    RESULT = db;
+:}
+| ID:id0 DOT ID:id1 LPAREN behaviourParamList:bpl RPAREN
+{:
+    DataBehaviour db = new DataBehaviour(id0.getLexeme(), id1.getLexeme());
+
+    db.setParamList(bpl);
+
+    RESULT = db;
+:}
+;
+
+behaviourParamList ::=
+behaviourParamList:bpl COMA behaviourParam:bp
+{:
+    List    l = new LinkedList();
+
+    l.addAll(bpl);
+    l.add(bp);
+
+    RESULT = l;
+:}
+| behaviourParam:bp
+{:
+    List    l = new LinkedList();
+
+    l.add(bp);
+
+    RESULT = l;
+:}
+|
+{:
+    RESULT = null;
+:}
+;
+
+behaviourParam ::=
+ID:id1 ASSIG ID:id2
+{:
+    BehaviourParam  bp = new BehaviourParam(id1.getLexeme(), id2.getLexeme());
+
+    RESULT = bp;
+:}
+| ID:id1 ASSIG STRING:str
+{:
+    BehaviourParam  bp = new BehaviourParam(id1.getLexeme(), str.getLexeme());
+
+    RESULT = bp;
+:}
+| ID:id1
+{:
+    BehaviourParam  bp = new BehaviourParam(id1.getLexeme(), null);
+
+    RESULT = bp;
+:}
+;
+
+////////
+// Global Variable Declaration
+//
+varGlobal ::=
+modificator:m type:t varGlobalList:vl endLine
+{:
+    SyntaxErrorManager.syntaxInfo(m + " " + t + " ");
+    ListIterator iter = vl.listIterator();
+
+    while (iter.hasNext()) {
+        VarField    tmpField = (VarField) iter.next();
+        String tmp = tmpField.getToken();
+
+        Variable    var = new ListVariable(tmp);
+        //tmp.setTmp(true);
+        globalVariables.addVariable(var);
+    }
+:}
+| type:t varGlobalList:vl endLine
+{:
+    ListIterator iter = vl.listIterator();
+
+    while (iter.hasNext()) {
+        String tmp = (String) iter.next();
+
+        Variable    var = new ListVariable(tmp);
+
+        globalVariables.addVariable(var);
+    }
+:}
+;
+
+modificator ::=
+TMP:i     {: RESULT = i.getLexeme(); :}
+//|         {: RESULT = ""; :}
+;
+
+type ::=
+VAR:v
+{:
+    VarType type = new VarType("var");
+
+    RESULT = (Type) type;
+:}
+;
+/*| VOID:i
+{:
+    VoidType type = new VoidType("void");
+    RESULT = (Type) type;
+:}
+;
+*/
+varGlobalList ::=
+varGlobalList:vl COMA varGlobalId:v
+{:
+    List l = new LinkedList();
+
+    l.addAll(vl);
+    l.add(v);
+
+    RESULT = l;
+:}
+| varGlobalId:v
+{:
+    List l = new LinkedList();
+
+    l.add(v);
+
+    RESULT = l;
+:}
+;
+
+varGlobalId ::=
+ID:id
+{:
+    RESULT = new VarField(id.getLexeme());
+:}
+| ID:id REGEX STRING:str
+{:
+    VarField    ret = new VarField(id.getLexeme());
+    ret.setRegex(str.getLexeme());
+
+    RESULT = ret;
+:}
+| ID ASSIG INTEGER
+| ID ASSIG STRING
+;
+
+/////////
+// Local Variable Declarations
+//
+
+varListLocal ::=
+varListLocal:v1 varLocal:v2
+{:
+    List l = new LinkedList();
+
+    l.addAll(v1);
+    l.addAll(v2);
+
+    RESULT = l;
+
+:}
+| varLocal:v
+{:
+    RESULT = v;
+:}
+;
+
+varLocal ::=
+modificator:m type:t varLocalList:vl endLine
+{:
+    SyntaxErrorManager.syntaxInfo(m + " ");
+    ListIterator iter = vl.listIterator();
+
+    while (iter.hasNext()) {
+        Assig tmp = (Assig) iter.next();
+
+        //tmp.getVariable().setType(t);
+        tmp.getVariable().setTmp(true);
+
+        currentVariables.addVariable(tmp.getVariable());
+    }
+
+    RESULT = vl;
+:}
+| type:t varLocalList:vl endLine
+{:
+    ListIterator iter = vl.listIterator();
+
+    while (iter.hasNext()) {
+        Assig tmp = (Assig) iter.next();
+
+        //tmp.getVariable().setType(t);
+
+        currentVariables.addVariable(tmp.getVariable());
+    }
+
+    RESULT = vl;
+:}
+;
+
+varLocalList ::=
+varLocalList:vl COMA varLocalId:v
+{:
+    List l = new LinkedList();
+
+    l.addAll(vl);
+    l.add(v);
+
+    RESULT = l;
+:}
+| varLocalId:v
+{:
+    List l = new LinkedList();
+
+    l.add(v);
+
+    RESULT = l;
+:}
+;
+
+varLocalId ::=
+ID:id
+{:
+    Assig a = new Assig();
+    /** XXX: Now variables are all ProxyVariable so they point to Vars instead of containing expr
+	Variable var = new SimpleVariable(new VarField(id.getLexeme()));
+    Storage sto = new RAMStorage();
+    var.addStorage(sto);
+	*/
+    a.setVariable(new ProxyVariable(id.getLexeme()));
+
+    RESULT = a;
+:}
+| ID:id ASSIG expr:e
+{:
+    Assig a = new Assig();
+	/** XXX same as above
+    Variable var = new SimpleVariable(new VarField(id.getLexeme()));
+    Storage sto = new RAMStorage();
+    var.addStorage(sto);
+	*/
+    a.setVariable(new ProxyVariable(id.getLexeme()));
+    a.setExpr(e);
+
+    RESULT = a;
+:}
+;
+
+/////////
+// Function Declaration
+//
+
+function ::=
+ID:id
+{:
+	// XXX: Check duplicated function declarations.
+    VariableManager vm = new VariableManager(id.getLexeme());
+    currentVariables = vm;
+    moduleManager.addVariableManager(vm);
+:}
+LPAREN functionArgsList:fal RPAREN functionBodyList:fbl endLine
+{:
+    SyntaxErrorManager.syntaxInfo("Function: " + id.getLexeme());
+    Function func = new Function(id.getLexeme());
+
+    func.addSentences(fbl);
+    func.setArguments(fal);
+
+    RESULT = func;
+:}
+;
+
+functionArgsList ::=
+functionArgsList:fal COMA functionOneArg:foa
+{:
+    List l = new LinkedList();
+
+    l.addAll(fal);
+    l.add(foa);
+
+    RESULT = l;
+:}
+| functionOneArg:foa
+{:
+    List l = new LinkedList();
+
+    l.add(foa);
+
+    RESULT = l;
+:}
+|
+{:
+    List    l = new LinkedList();
+
+    RESULT = l;
+:}
+;
+
+// XXX: We restrict the use of arguments to Simple Variables
+//
+functionOneArg ::=
+type:t ID:id
+{:
+    Variable var = new ProxyVariable(id.getLexeme());
+
+    currentVariables.addVariable(var);
+
+    RESULT = var;
+:}
+;
+
+functionBodyList ::=
+LCURLY varListLocal:vl sentencesList:sl RCURLY
+{:
+    List l = new LinkedList();
+
+    l.addAll(vl);
+    l.addAll(sl);
+
+    RESULT = l;
+:}
+| LCURLY sentencesList:sl RCURLY
+{:
+    RESULT = sl;
+:}
+| LCURLY RCURLY
+{:
+    List ret = new LinkedList();
+
+    RESULT = ret;
+:}
+|
+{:
+    List ret = new LinkedList();
+
+    RESULT = ret;
+:}
+;
+
+sentencesList ::=
+sentencesList:sl sentences:s
+{:
+    List ret = new LinkedList();
+
+    ret.addAll(sl);
+    ret.add(s);
+
+    RESULT = ret;
+:}
+| sentences:s
+{:
+    List ret = new LinkedList();
+
+    ret.add(s);
+
+    RESULT = ret;
+:}
+;
+
+sentences ::=
+sentencesBlock:sb
+{:
+    RESULT = (Sentence) sb;
+:}
+| assignSentence:a endLine
+{:
+    RESULT = a;
+:}
+| addAssig:pa endLine
+{:
+    RESULT = (Sentence) pa;
+:}
+| subAssig:ma endLine
+{:
+    RESULT = (Sentence) ma;
+:}
+| whileSentence:ws endLine
+{:
+    RESULT = (Sentence) ws;
+:}
+| forSentence:fs endLine
+{:
+    RESULT = (Sentence) fs;
+:}
+| iterator:i
+{:
+    RESULT = (Sentence) i;
+:}
+| functionCall:f endLine
+{:
+    RESULT = (Sentence) f;
+:}
+| println:p endLine
+{:
+    RESULT = p;
+:}
+| print:p endLine
+{:
+    RESULT = p;
+:}
+| flushVariable:fv
+{:
+    RESULT = (Sentence) fv;
+:}
+| ifSentence:ifs
+{:
+	RESULT = (Sentence)ifs;
+:}
+| returnSentence:rs endLine
+{:
+	RESULT = (Sentence) rs;
+:}
+;
+
+sentencesBlock ::=
+LCURLY varLocal:vl sentencesList:sl RCURLY
+{:
+    SentencesBlock sb = new SentencesBlock();
+    List    l = new LinkedList();
+
+    l.addAll(vl);
+    l.addAll(sl);
+
+    sb.setSentences(l);
+
+    RESULT = sb;
+:}
+| LCURLY sentencesList:sl RCURLY
+{:
+    SentencesBlock sb = new SentencesBlock();
+    sb.setSentences(sl);
+
+    RESULT = sb;
+:}
+| LCURLY RCURLY
+{:
+    SentencesBlock sb = new SentencesBlock();
+    sb.setSentences(new LinkedList());
+
+    RESULT = sb;
+:}
+;
+
+
+////////////
+// ID 2 Variable
+//
+
+id2Var ::=
+id2VarList:ivl
+{:
+    Variable    var = null;
+    Iterator    iter = ivl.iterator();
+
+    while (iter.hasNext()) {
+        String  tmp = (String) iter.next();
+        if (var == null) {
+                if (globalVariables.hasVariable(tmp) ||currentVariables.hasVariable(tmp)) {
+                    var = getVariable(tmp);
+                } else {
+                        errorManager.syntaxFatalError("Variable not found");
+                }
+        } else {
+            if (var.containsVariable(tmp)) {
+                var = var.getVariable(tmp);
+            }
+        }
+    }
+
+    RESULT = var;
+:}
+;
+
+id2VarList ::=
+id2VarList:ivl DOT ID:id
+{:
+    List    l = new LinkedList();
+    l.addAll(ivl);
+    l.add(id.getLexeme());
+
+    RESULT = l;
+:}
+| ID:id
+{:
+    List    l = new LinkedList();
+    l.add(id.getLexeme());
+
+    RESULT = l;
+:}
+;
+
+////////
+// Sentences
+//
+
+assignSentence ::=
+ID:id ASSIG expr:e
+{:
+    if (!globalVariables.hasVariable(id.getLexeme()) &&
+        !currentVariables.hasVariable(id.getLexeme())) {
+        errorManager.syntaxFatalError("Variable not found", id);
+    }
+    Assig a = new Assig();
+
+    a.setVariable(getVariable(id.getLexeme()));
+    a.setExpr(e);
+
+    RESULT = (Sentence) a;
+:}
+| ID:id1 DOT ID:id2 ASSIG expr:e
+{:
+    if (!globalVariables.hasVariable(id1.getLexeme()) &&
+		!currentVariables.hasVariable(id1.getLexeme())) {
+        errorManager.syntaxFatalError("Variable not found", id1);
+    }
+
+    Assig a = new Assig();
+
+    /* We don't know yet where this is going to point to 
+	BehaviourVariable  var = (BehaviourVariable) getVariable(id1.getLexeme());
+
+    if (!var.containsVariable(id2.getLexeme())) {
+        errorManager.syntaxFatalError("Member of " + id1.getLexeme()  + " not found", id2);
+    }
+*/
+    //var.getVariable(id2.getLexeme());
+
+	Variable var = getVariable(id1.getLexeme());
+	
+    /**XXX: use ProxyVariable instead of PBV
+	ProxyBehaviourVariable pbv = new ProxyBehaviourVariable(var);
+    pbv.setVariableName(id2.getLexeme());
+	*/
+	//ProxyBehaviourVariable pbv = new ProxyBehaviourVariable(var, id2.getLexeme());
+	//XXX This will be done in Assign pv.setVariable(var.getVariable(id2.getLexeme()));
+	//var.setVariable(pbv);
+    a.setVariable(var, id2.getLexeme());
+    a.setExpr(e);
+
+    RESULT = (Sentence) a;
+:}
+;
+
+//
+//;
+
+whileSentence ::=
+WHILE LPAREN expr:e RPAREN sentencesBlock:sb
+{:
+
+    While w = new While();
+    w.setCondition(e);
+if (e == null)
+    System.out.println("QUE OXTIAS");
+    w.setBlock(sb);
+
+    RESULT = w;
+:} 
+;
+
+forSentence ::=
+FOR LPAREN forPre:fp SEMICOLON forCondition:fc SEMICOLON forLoop:fl RPAREN sentencesBlock:sb
+{:
+    For f = new For(fp, fc, fl);
+    f.setBlock(sb);
+
+    RESULT = f;
+:}
+;
+
+forPre ::=
+assignSentence:as
+{:
+    RESULT = as;
+:}
+|
+{:
+    RESULT = null;
+:}
+;
+
+forCondition ::=
+expr:e
+{:
+    RESULT = e;
+:}
+;
+
+forLoop ::=
+assignSentence:as
+{:
+    RESULT = as;
+:}
+|
+{:
+    RESULT = null;
+:}
+;
+
+ifSentence ::=
+IF LPAREN expr:e RPAREN sentences:s
+{:
+	IfSentence	is = new IfSentence();
+	
+	is.setExpr(e);
+	is.setSentence1(s);
+	
+	RESULT = is;
+:}
+//| IF LPAREN expr RPAREN sentences ELSE IF LPAREN expr RPAREN sentences
+| IF LPAREN expr:e RPAREN sentences:s1 ELSE sentences:s2
+{:
+	IfSentence	is = new IfSentence();
+	
+	is.setExpr(e);
+	is.setSentence1(s1);
+	is.setSentence2(s2);
+	
+	RESULT = is;
+:}
+| error ELSE
+{:
+	System.out.println("ERROR EN ELSE");
+:}
+;
+
+////////
+// Iterator handler
+// 
+
+iterator ::=
+ITER ID:id varAttr:va
+{:
+    VariableManager vm = null;
+
+    if (!globalVariables.hasVariable(id.getLexeme()) &&
+        !currentVariables.hasVariable(id.getLexeme())) {
+        errorManager.syntaxFatalError("Variable not found", id);
+    }
+//System.out.println("iterator " + id.getLexeme() + " " + va.isEmpty());
+    Variable    var = getVariable(id.getLexeme());
+    Variable    newvar = null;
+
+	newvar = new ProxyVariable(id.getLexeme());
+    /**
+	 * XXX: We don't till run-time which variable is going to be pointed
+	if (var.getValue() instanceof BehaviourVariable) {
+        newvar = new BehaviourVariable(var.getName());
+        ((BehaviourVariable)newvar).setVariables(((BehaviourVariable)var).getVariables());
+    } else {
+//System.out.println("Simple!! " + id.getLexeme());
+        SimpleVariable tmpVar = (SimpleVariable) var;
+        newvar = new SimpleVariable(tmpVar.getVarField());
+        Storage     sto = new RAMStorage();
+        newvar.addStorage(sto);
+    }
+	*/
+
+    if (currentVariables.hasVariable(id.getLexeme())) {
+        vm = currentVariables;
+    } else if (globalVariables.hasVariable(id.getLexeme())) {
+        vm = globalVariables;
+    }
+
+    vm.addIteratorVariable(newvar);
+
+    VariableIterator iter = new VariableIterator(vm, var, newvar, va);
+
+    stackIterator.push(iter);
+:}
+sentencesBlock:sb
+{:
+    VariableIterator    iter = (VariableIterator) stackIterator.pop();
+
+    iter.setSentences(sb);
+
+    (iter.getVariableManager()).delIteratorVariable(iter.getNewvar());
+
+    RESULT = iter;
+:}
+;
+
+///////
+// Flush Variables
+// 
+
+flushVariable ::=
+ID:id DOT FLUSH endLine
+{:
+    if (!globalVariables.hasVariable(id.getLexeme()) &&
+        !currentVariables.hasVariable(id.getLexeme())) {
+        errorManager.syntaxFatalError("Variable not found", id);
+    }
+
+    FlushVariable fb = new FlushVariable(getVariable(id.getLexeme()));
+    
+    RESULT = fb;
+:}
+;
+///////
+// I/O Sentences
+//
+
+//sentencesIO ::=
+//;
+
+println ::=
+PRINTLN LPAREN expr:e RPAREN
+{:
+    Println ret = new Println(e);
+
+    RESULT = ret;
+:}
+;
+
+print ::=
+PRINT LPAREN expr:e RPAREN
+{:
+    Print ret = new Print(e);
+
+    RESULT = ret;
+:}
+;
+
+read ::=
+READ LPAREN RPAREN
+{:
+    Read ret = new Read();
+
+    RESULT = ret;
+:}
+;
+
+///////
+// ReturnSentence
+//
+
+returnSentence ::=
+RETURN expr:e
+{:
+	Return r = new Return(e);
+	
+	RESULT = r;
+:}
+;
+
+///////
+// Expression
+//
+
+expr ::=
+  ID:id
+{:
+    if (!globalVariables.hasVariable(id.getLexeme()) &&
+        !currentVariables.hasVariable(id.getLexeme())) {
+        errorManager.syntaxFatalError("Variable not found", id);
+    }
+
+    Variable    var = getVariable(id.getLexeme());
+
+    RESULT = (Expr) var;
+:}
+|  ID:id1 DOT ID:id2
+{:
+    if (!globalVariables.hasVariable(id1.getLexeme())) {
+        errorManager.syntaxFatalError("Variable not found", id1);
+    }
+
+    /*BehaviourVariable  var = (BehaviourVariable) getVariable(id1.getLexeme());
+
+    if (!var.containsVariable(id2.getLexeme())) {
+        errorManager.syntaxFatalError("Member of " + id1.getLexeme()  + " not found", id2);
+    }
+	*/
+    System.out.println(getVariable(id1.getLexeme()));
+	ProxyBehaviourVariable pbv = new ProxyBehaviourVariable((Variable)getVariable(id1.getLexeme()), id2.getLexeme());
+    //RESULT = (Expr) var.getVariable(id2.getLexeme());
+    RESULT = (Expr) pbv;
+:}
+| INTEGER:i
+{:
+    IntegerExpr exp = new IntegerExpr(i.getLexeme());
+
+    RESULT = (Expr) exp;
+:}
+| STRING:s
+{:
+    StringExpr e = new StringExpr(s.getLexeme());
+
+    RESULT = (Expr) e;
+:}
+| functionCall:f
+{:
+    RESULT = (Expr) f;
+:}
+| read:r
+{:
+    RESULT = (Expr) r;
+:}
+| expr:e PLUSPLUS
+{:
+	PostCrement pc = new PostCrement(e, 1);
+	
+	RESULT = (Expr) pc;
+:}
+| expr:e MINUSMINUS
+{:
+	PostCrement pc = new PostCrement(e, -1);
+	
+	RESULT = (Expr) pc;
+:}
+| expr:e1 PLUS expr:e2
+{:
+    Plus p = new Plus(e1, e2);
+
+    RESULT = (Expr) p;
+:}
+| expr:e1 MINUS expr:e2
+{:
+    Minus p = new Minus(e1, e2);
+
+    RESULT = (Expr) p;
+:}
+| expr:e1 LESS expr:e2
+{:
+    Less l = new Less(e1, e2);
+
+    RESULT = (Expr) l;
+:}
+| expr:e1 GREAT expr:e2
+{:
+    Great g = new Great(e1, e2);
+
+    RESULT = (Expr) g;
+:}
+| expr:e1 LESSEQUAL expr:e2
+{:
+    LessEqual l = new LessEqual(e1, e2);
+
+    RESULT = (Expr) l;
+:}
+| expr:e1 GREATEQUAL expr:e2
+{:
+    GreatEqual g = new GreatEqual(e1, e2);
+
+    RESULT = (Expr) g;
+:}
+| expr:e1 AND expr:e2
+{:
+    And a = new And(e1, e2);
+
+    RESULT = (Expr) a;
+:}
+| expr:e1 OR expr:e2
+{:
+    Or o= new Or(e1, e2);
+
+    RESULT = (Expr) o;
+:}
+| expr:e1 EQUAL expr:e2
+{:
+	Equal eq = new Equal(e1, e2);
+	
+	RESULT = (Expr) eq;
+:}
+| expr:e1 NOEQUAL expr:e2
+{:
+	NoEqual df = new NoEqual(e1, e2);
+	
+	RESULT = (Expr) df;
+:}
+| expr:e1 MUL expr:e2
+{:
+	Mult mu = new Mult(e1, e2);
+	
+	RESULT = (Expr) mu;
+:}
+| expr:e1 DIV expr:e2
+{:
+	Divide div = new Divide(e1, e2);
+	
+	RESULT = (Expr) div;
+:}
+| NOT expr
+| LPAREN expr:e RPAREN
+{:
+    RESULT = e;
+:}
+;
+
+///////////////
+// functionCall
+//
+
+functionCall ::=
+moduleFunctionName:mn LPAREN:l functionCallArgsList:fcal RPAREN
+{:
+    Function f = null;
+
+    if (mn.isLocalModule()) { 
+        if (!functionManager.containsFunction(mn.getFunctionName())) { 
+            errorManager.syntaxFatalError("Funtion not declared " + mn.getFunctionName(), l);
+        }
+
+        f = functionManager.getFunction(mn.getFunctionName());
+    } else {
+        FunctionManager fm = null;
+        ModuleManager mm = null;
+
+        if (!moduleManager.containsImportedModuleManager(mn.getModuleName())) {
+            errorManager.syntaxFatalError("Module \"" + mn.getModuleName() + "\" not imported", l);
+        }
+
+        mm = moduleManager.getImportedModuleManager(mn.getModuleName());
+
+        fm = mm.getFunctionManager();
+
+        if (!fm.containsFunction(mn.getFunctionName())) { 
+            errorManager.syntaxFatalError("Funtion not declared " + mn.getFunctionName(), l);
+        }
+
+       f = fm.getFunction(mn.getFunctionName());
+    }
+    if (f.getArguments().size() != fcal.size()) {
+        errorManager.syntaxFatalError("Bad arguments number ", l);
+    }
+
+    FunctionCall fc = new FunctionCall();
+    
+    fc.setFunction(f);
+    fc.setArguments(fcal);
+    ListIterator iterArg = f.getArguments().listIterator();
+    ListIterator iter = fcal.listIterator();
+    while(iter.hasNext()) {
+        Expr tmp = (Expr) iter.next();
+
+        Variable varArg = (Variable) iterArg.next();
+
+//        if (var.getType().getName() != varArg.getType().getName()) 
+//            errorManager.syntaxFatalError("Variable " + tmp + "type != declaration argument type");
+//System.out.println("Value tmp: " + tmp.getValue());
+ //       varArg.setValue(tmp.getValue());
+    }
+    
+    RESULT = fc;
+:}
+;
+
+functionCallArgsList ::=
+functionCallArgsList:fl COMA functionCallOneArg:fco
+{:
+    List    l = new LinkedList();
+
+    l.addAll(fl);
+    l.add(fco);
+
+    RESULT = l;
+:}
+| functionCallOneArg:fco
+{:
+    List    l = new LinkedList();
+
+    l.add(fco);
+
+    RESULT = l;
+:}
+|
+{:
+    List l = new LinkedList();
+
+    RESULT = l;
+:}
+;
+
+functionCallOneArg ::=
+expr:e
+{:
+    RESULT = e;
+:}
+;
+
+moduleFunctionName ::=
+ID:id1 DOT ID:id2
+{:
+    ModuleFunction mn = new ModuleFunction();
+
+    mn.setModuleName(id1.getLexeme());
+    mn.setFunctionName(id2.getLexeme());
+
+    RESULT = mn;
+:}
+|ID:id
+{:
+    ModuleFunction mn = new ModuleFunction();
+
+    mn.setFunctionName(id.getLexeme());
+
+    RESULT = mn;
+:}
+;

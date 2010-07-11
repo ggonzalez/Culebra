@@ -1,0 +1,7 @@
+import "module/test01.cu"
+
+void
+main()
+{
+prueba.oxtias();
+}
