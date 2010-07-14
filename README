@@ -1,1 +1,6 @@
 CULEBRA: On-The-Cloud Programming Language with nifty security features
+
+* Security Features:
+---------------------
+1. Cross Cutting Security Hooks
+
