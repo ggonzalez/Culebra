@@ -7,3 +7,6 @@ CULEBRA: On-The-Cloud Programming Language with nifty security features
 - New file to configure cross cutting features. 
 - Own syntax, maybe different from .cu files
 - File containing checkings and external modules calls.
+- Each execution point check whether it is subject to perform a security check.
+- In the file, security checks can be hooked to ALL exec points or to a 
+  given subset of them
