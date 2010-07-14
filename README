@@ -4,3 +4,6 @@ CULEBRA: On-The-Cloud Programming Language with nifty security features
 ---------------------
 1. Cross Cutting Security Hooks
 
+- New file to configure cross cutting features. 
+- Own syntax, maybe different from .cu files
+
