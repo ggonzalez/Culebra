@@ -10,15 +10,20 @@
     <taskdef name="jflex" classpath ="lib/JFlex.jar" classname="JFlex.anttask.JFlexTask"/>
 
 
+    <property name="flexSecFile" value="culebra-sec.flex"/>
+    <property name="cupSecFile" value="culebra-sec.cup"/>
     <property name="flexFile" value="culebra.flex"/>
     <property name="testFile" value="test01.cu"/>
     <property name="cupFile" value="culebra.cup"/>
     <property name="cupdir" location="flexcup"/>
     <property name="sourceBase" location="src"/>
+    <property name="sourceSecBase" location="src/culebra/security"/>
     <property name="classes" location="classes"/>
     <property name="compilerSource" location="${sourceBase}/culebra"/>
     <property name="scannerSource" location="${compilerSource}/lexical"/>
     <property name="parserSource" location="${compilerSource}/syntax"/>
+    <property name="scannerSecSource" location="${compilerSource}/security/lexical"/>
+    <property name="parserSecSource" location="${compilerSource}/security/syntax"/>
     
     	<path id="class-path">
 		<fileset dir="lib">
@@ -31,10 +36,12 @@
                  <description> Starts Cup </description>
 		<echo message="Starting Cup..."/>
 		<cup srcfile="${cupdir}/${cupFile}" destdir="${sourceBase}" interface="true" progress="true"/>
+		<cup srcfile="${cupdir}/${cupSecFile}" destdir="${sourceBase}" interface="true" progress="true"/>
                 
                 <description> Starts JFlex </description>
 		<echo message="Starting Flex..."/>
 		<jflex file="flexcup/${flexFile}" destdir="${sourceBase}"/>
+		<jflex file="flexcup/${flexSecFile}" destdir="${sourceBase}"/>
                 
 
         	
@@ -48,6 +55,10 @@
 	<delete file="${scannerSource}/Scanner.java"/>
 	<delete file="${parserSource}/sym.java"/>
         <delete file="${parserSource}/parser.java"/>
+
+	<delete file="${scannerSecSource}/Scanner.java"/>
+	<delete file="${parserSecSource}/sym.java"/>
+        <delete file="${parserSecSource}/parser.java"/>
     </target>
     
     <!--
