@@ -36,13 +36,16 @@
                  <description> Starts Cup </description>
 		<echo message="Starting Cup..."/>
 		<cup srcfile="${cupdir}/${cupFile}" destdir="${sourceBase}" interface="true" progress="true"/>
+	<!-- Second parser not needed yet
 		<cup srcfile="${cupdir}/${cupSecFile}" destdir="${sourceBase}" interface="true" progress="true"/>
+	-->
                 
                 <description> Starts JFlex </description>
 		<echo message="Starting Flex..."/>
 		<jflex file="flexcup/${flexFile}" destdir="${sourceBase}"/>
+	<!-- Second parser not needed yet
 		<jflex file="flexcup/${flexSecFile}" destdir="${sourceBase}"/>
-                
+         -->       
 
         	
 
@@ -56,9 +59,11 @@
 	<delete file="${parserSource}/sym.java"/>
         <delete file="${parserSource}/parser.java"/>
 
+	<!-- Second parser not needed yet
 	<delete file="${scannerSecSource}/Scanner.java"/>
 	<delete file="${parserSecSource}/sym.java"/>
         <delete file="${parserSecSource}/parser.java"/>
+	-->
     </target>
     
     <!--
