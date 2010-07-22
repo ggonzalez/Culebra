@@ -8,6 +8,7 @@ package culebra.arch.sentences;
 import culebra.arch.*;
 import culebra.arch.expressions.IntegerExpr;
 import culebra.arch.expressions.StringExpr;
+import culebra.security.arch.HookManager;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -22,8 +23,8 @@ implements Expr {
     private List    sentences = null;
     private List    args = null;
     private String  name = null;
+    private String  moduleName = null;
 
-    
     public Function(String name) {
         sentences = new LinkedList();
         this.name = name;
@@ -33,6 +34,8 @@ implements Expr {
         ListIterator    iter = sentences.listIterator();
         ReturnObject   ret = null;
         
+        HookManager.execIfMatches(moduleName + "." + name);
+
         while (iter.hasNext()) {
             Sentence tmp = (Sentence) iter.next();
             if (tmp == null) {
@@ -48,6 +51,10 @@ implements Expr {
         return ret;
     }
 
+    public void setModuleName(String moduleName) {
+        this.moduleName = moduleName;
+    }
+    
     public void setArguments(List args) {
         this.args = args;
     }
