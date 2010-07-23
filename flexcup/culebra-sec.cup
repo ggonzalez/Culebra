@@ -1,0 +1,327 @@
+package culebra.security.syntax;
+
+// Declaración de importaciones
+//(No modificar las proporcionadas. Se pueden agregar mas)
+
+import java_cup.runtime.Symbol;
+import java.util.*;
+import java.io.*;
+
+import culebra.*;
+import culebra.lexical.Token;
+import culebra.syntax.*;
+import culebra.arch.*;
+import culebra.arch.sentences.*;
+import culebra.arch.sentences.io.*;
+import culebra.arch.expressions.*;
+import culebra.semantic.*;
+import culebra.arch.types.*;
+import culebra.arch.variable.*;
+import culebra.arch.variable.behaviour.*;
+import culebra.arch.variable.storage.*;
+import culebra.arch.variable.factories.*;
+
+action code {:
+    SyntaxErrorManager  errorManager = new SyntaxErrorManager();
+    ModuleManager   moduleManager = new ModuleManager();
+    FunctionManager functionManager = new FunctionManager();
+    VariableManager globalVariables = new VariableManager("global");
+    VariableManager currentVariables = null;
+    Stack           stackIterator = new Stack();
+
+    public Variable getVariable(String name) {
+        if (currentVariables.hasVariable(name))
+            return currentVariables.getVariable(name);
+
+        if (globalVariables.hasVariable(name))
+            return globalVariables.getVariable(name);
+
+         return null;
+    }
+:}
+
+parser code {:
+	public void syntax_error(Symbol symbol)
+	{
+	    Token token = (Token) symbol.value;
+	    SyntaxErrorManager.syntaxError ("Error sintactico", token);
+	}
+
+	public void unrecovered_syntax_error(java_cup.runtime.Symbol symbol)
+	{
+		Token token = (Token) symbol.value;
+	    SyntaxErrorManager.syntaxFatalError ("Error fatal", token);
+	}
+
+
+:}
+
+// Declaración de terminales
+
+terminal Token INTEGER;
+terminal Token STRING;
+terminal Token ID;
+
+// KEYWORDS
+terminal Token CASE;
+terminal Token DEFINE;
+terminal Token BREAK;
+terminal Token IMPORT;
+terminal Token MODULE;
+terminal Token FLUSH;
+terminal Token DELETE;
+
+terminal Token ENUM;
+//terminal Token PRINTF;
+terminal Token ESCRIBEINT;
+terminal Token SWITCH;
+terminal Token WHILE;
+terminal Token FOR;
+terminal Token DEFAULT;
+terminal Token MAIN;
+terminal Token STRUCT;
+terminal Token RETURN;
+terminal Token CONTINUE;
+terminal Token IF;
+terminal Token ELSE;
+terminal Token TYPEDEF;
+
+// MODIFICATORS
+terminal Token TMP;
+
+// TYPES
+terminal Token INT;
+terminal Token STR;
+terminal Token FLT;
+terminal Token VOID;
+terminal Token VAR;
+
+// DELIMITADORES
+terminal Token LPAREN;
+terminal Token RPAREN;
+
+terminal Token LCURLY;
+terminal Token RCURLY;
+terminal Token COMA;
+terminal Token SEMICOLON;
+terminal Token COLON;
+terminal Token ANDPERSAND;
+
+////////////
+// Operadores
+//
+// Aritmeticos
+terminal Token PLUS;
+terminal Token MINUS;
+terminal Token MUL;
+terminal Token DIV;
+
+// Relacionales
+terminal Token LESS;
+terminal Token GREAT;
+terminal Token LESSEQUAL;
+terminal Token GREATEQUAL;
+terminal Token EQUAL;
+terminal Token NOEQUAL;
+
+// Logicos
+terminal Token AND;
+terminal Token OR;
+terminal Token NOT;
+
+// Especiales
+terminal Token PLUSPLUS;
+terminal Token MINUSMINUS;
+
+// Asignacion
+terminal Token ASSIG;
+terminal Token ADDASSIG;
+terminal Token SUBSASSIG;
+
+// I/O Operators
+terminal Token PRINTLN;
+terminal Token PRINT;
+terminal Token READ;
+
+// Access
+terminal Token DOT;
+terminal Token ITER;
+
+// REGEX
+terminal Token REGEX;
+
+// Declaraci�n de no terminales
+// no modificar los propuestos
+
+non terminal ModuleManager   	program;
+non terminal                	programModule;
+
+non terminal String             importHeader;
+non terminal String             moduleHeader;
+non terminal ModuleFunction     moduleFunctionName;
+
+non terminal                    body;
+non terminal                    declaration;
+
+non terminal                    endLine;
+
+non terminal                    dataType;
+non terminal List               dataParamList;
+non terminal DataBehaviour      dataBehaviour;
+non terminal List               behaviourParamList;
+non terminal BehaviourParam     behaviourParam;
+non terminal VarAttr            varAttr;
+
+non terminal                    varGlobal;
+non terminal List               varGlobalList;
+//BEFORE REGEX non terminal String             varGlobalId;
+non terminal VarField           varGlobalId;
+
+non terminal List               varListLocal;
+non terminal List               varLocal;
+non terminal List               varLocalList;
+non terminal Sentence           varLocalId;
+
+non terminal Type               type;
+non terminal String             modificator;
+
+non terminal Function           function;
+non terminal List               functionBodyList;
+
+non terminal List               functionArgsList;
+non terminal Variable           functionOneArg;
+
+non terminal FunctionCall       functionCall;
+non terminal List               functionCallArgsList;
+non terminal Expr               functionCallOneArg;
+
+non terminal SentencesBlock     sentencesBlock;
+non terminal Sentence           sentences;
+non terminal List               sentencesList;
+
+non terminal Sentence           assignSentence;
+non terminal AddAssig          	addAssig;
+non terminal SubAssig         	subAssig;
+non terminal While              whileSentence;
+non terminal For                forSentence;
+non terminal Sentence           forPre, forLoop;
+non terminal Expr               forCondition;
+non terminal IfSentence			ifSentence;
+non terminal Return				returnSentence;
+
+non terminal Println            println;
+non terminal Print              print;
+non terminal Read               read;
+
+non terminal VariableIterator   iterator;
+non terminal FlushVariable      flushVariable;
+
+non terminal Expr               expr;
+
+non terminal Variable           id2Var;
+non terminal List               id2VarList;
+
+//// OLD VERSION
+
+non terminal                    seccOp;
+non terminal                    seccOpEnd;
+
+non terminal                    declaracion;
+non terminal                    declaracionEnd;
+
+
+
+
+non terminal                    varGlobalEnd;
+
+
+
+non terminal                    funcionDef;
+non terminal                    tipoFunc;
+
+non terminal                    funcParam;
+non terminal                    funcParamEnd;
+
+non terminal                    localVar;
+non terminal                    localType;
+non terminal                    sentencesEnd;
+non terminal                    sentencesBlockClosed;
+
+non terminal                    sentencesBlockClosedEnd;
+
+non terminal                    tipoDecl;
+non terminal                    tipoDeclEnd;
+
+non terminal List               enumeraDef;
+non terminal String             enumeraDefEnd;
+non terminal                    registroDef;
+non terminal                    registroDefEnd;
+non terminal                    registroDefDecl;
+non terminal                    regMember;
+
+non terminal VarList            varDeclaracion;
+non terminal Var                varDeclaracionEnd;
+
+non terminal                    sentenceOpen;
+non terminal                    sentenceClosed;
+non terminal                    ifSentenceEnd;
+
+non terminal                    switchSentence;
+
+
+non terminal                    funcCall;
+non terminal                    funcCallArgs;
+non terminal                    funcCallArgsEnd;
+
+non terminal                    assigSentence;
+non terminal                    assigSentenceEnd;
+
+non terminal                    alternativas;
+non terminal                    alterBody;
+non terminal                    alterBodyEnd;
+non terminal                    alterCaso;
+non terminal                    alterCasoDefault;
+
+non terminal                    mientras;
+
+non terminal                    para;
+
+precedence  left    DOT,
+                    LPAREN,
+                    RPAREN;
+
+precedence  left    PLUSPLUS,
+                    MINUSMINUS,
+                    NOT;
+
+precedence  left    MUL,
+                    DIV;
+
+precedence  left    LESS,
+                    GREAT,
+					LESSEQUAL,
+                    GREATEQUAL;
+					
+precedence  left    EQUAL,
+                    NOEQUAL;
+
+precedence  left    AND;
+
+precedence  left    OR;
+
+precedence  left    PLUS,
+                    MINUS;
+					
+precedence	left	ELSE;
+
+///////////////
+// Production rules declaration
+//
+start with program;
+
+program ::= 
+{:
+	RESULT = null;
+:}
+  ;
+

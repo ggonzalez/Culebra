@@ -20,6 +20,7 @@ import culebra.arch.variable.*;
 import culebra.arch.variable.behaviour.*;
 import culebra.arch.variable.storage.*;
 import culebra.arch.variable.factories.*;
+import culebra.security.arch.*;
 
 action code {:
     SyntaxErrorManager  errorManager = new SyntaxErrorManager();
@@ -70,6 +71,7 @@ terminal Token IMPORT;
 terminal Token MODULE;
 terminal Token FLUSH;
 terminal Token DELETE;
+terminal Token HOOKS;
 
 terminal Token ENUM;
 //terminal Token PRINTF;
@@ -194,6 +196,10 @@ non terminal Variable           functionOneArg;
 non terminal FunctionCall       functionCall;
 non terminal List               functionCallArgsList;
 non terminal Expr               functionCallOneArg;
+
+non terminal	FunctionHook 						functionHooks;
+non terminal	List										hookedFunctionList;
+non terminal	HookedFunction					hookedFunction;
 
 non terminal SentencesBlock     sentencesBlock;
 non terminal Sentence           sentences;
@@ -722,6 +728,62 @@ ID:id
 // Function Declaration
 //
 
+functionHooks ::=
+COLON HOOKS LPAREN hookedFunctionList:hfl RPAREN
+{:
+	FunctionHook	fh = new FunctionHook();
+	Iterator				iter = hfl.iterator();
+	
+	while (iter.hasNext()) {
+		HookedFunction	tmp = (HookedFunction) iter.next();
+		
+		if (tmp.isNoHooked())
+			fh.addNoHookedFunction(tmp);
+		else
+			fh.addHookedFunction(tmp);
+	}
+	
+	RESULT = fh;
+:}
+|
+{:
+	FunctionHook	fh = new FunctionHook();
+	
+	RESULT = null;
+:}
+;
+
+hookedFunctionList ::=
+hookedFunctionList:hfl COMA hookedFunction:hf
+{:
+	hfl.add(hf);
+	
+	RESULT = hfl;
+:}
+| hookedFunction:hf
+{:
+	List	l = new LinkedList();
+	l.add(hf);
+	
+	RESULT = l;
+:}
+;
+
+hookedFunction ::=
+STRING:s
+{:
+	HookedFunction	hf = new HookedFunction(s.getLexeme(), false);
+	
+	RESULT = hf;
+:}
+| MINUS STRING:s
+{:
+	HookedFunction	hf = new HookedFunction(s.getLexeme(), true);
+	
+	RESULT = hf;
+:}
+;
+
 function ::=
 ID:id
 {:
@@ -730,14 +792,20 @@ ID:id
     currentVariables = vm;
     moduleManager.addVariableManager(vm);
 :}
-LPAREN functionArgsList:fal RPAREN functionBodyList:fbl endLine
+LPAREN functionArgsList:fal RPAREN functionHooks:fh functionBodyList:fbl endLine
 {:
     SyntaxErrorManager.syntaxInfo("Function: " + id.getLexeme());
     Function func = new Function(id.getLexeme());
 
     func.addSentences(fbl);
     func.setArguments(fal);
+	func.setModuleName(moduleManager.getName());
 
+	if (fh != null) {
+		fh.setFunction(func);
+		HookManager.addHook(fh);
+	}
+	
     RESULT = func;
 :}
 ;

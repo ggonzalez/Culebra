@@ -95,19 +95,18 @@ public class BasicFeatTest {
         fm.getFunction("main").exec();
     }
     
-    @Test
+    /*@Test
     public void testExpr() {
-        String file = "source.culebra/test-expr.cu";
-        
-        ModuleManager   mm = null;
-        FunctionManager fm = null;
-        
-        mm = ModuleParser.parse(file);
+    String file = "source.culebra/test-expr.cu";
 
-        fm = mm.getFunctionManager();
-        fm.getFunction("main").exec();
-    }
+    ModuleManager   mm = null;
+    FunctionManager fm = null;
 
+    mm = ModuleParser.parse(file);
+
+    fm = mm.getFunctionManager();
+    fm.getFunction("main").exec();
+    }*/
     @Test
     public void testWhile() {
     String file = "source.culebra/test-while.cu";
