@@ -13,4 +13,6 @@ CULEBRA: On-The-Cloud Programming Language with nifty security features
   given subset of them
 
 TODO:
-- Improve DB variables
+- Improve Behaviour variables
+* Allow Behaviour vars nesting
+- Add search over the whole Var history and over the database when DB Vars

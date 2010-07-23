@@ -110,6 +110,11 @@ extends DBStorage {
             System.err.println("MySQLDB SQLState: " + e.getSQLState());
             ret = false;
         }
+        if (!this.isTableCreated()) {
+            System.out.println("ERROR: Table " + this.getTable() + " does not exist!");
+            System.exit(-1);
+        }
+
         return ret;
     }
 
@@ -125,9 +130,28 @@ extends DBStorage {
         return this.varAttr;
     }
 
-
     public Iterator iterator(Map tmp, VarAttr va) {
         return this.iterator(tmp);
+    }
+
+    private boolean isTableCreated() {
+        String query = "SHOW TABLES LIKE '" + this.getTable() + "'";
+        ResultSet res = null;
+        boolean ret = true;
+
+        try {
+            Statement stmt = this.conn.createStatement();
+            res = stmt.executeQuery(query);
+
+            if (!res.next()) {
+                ret = false;
+            }
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            System.exit(-1);
+        }
+
+        return ret;
     }
 
 }
