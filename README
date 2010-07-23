@@ -12,5 +12,10 @@ CULEBRA: On-The-Cloud Programming Language with nifty security features
 - In the file, security checks can be hooked to ALL exec points or to a 
   given subset of them
 
+* On-The-Cloud IPC
+--------------------
+
+- Instead of using the standard TCP/IP mechanisms to communicate two or more ends. Culebra is going to implent an on-the-cloud system.
+
 TODO:
 - Improve DB variables
