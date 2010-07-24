@@ -3,7 +3,7 @@ var testMySQL {
 	field2,
 	field3,
 	field4
-} DB.MySQL(server = "localhost", user = "root", pass = "d.d.334", db = "culebra")
+} DB.MySQL(server = "localhost", user = "culebra", pass = "cul3br4", db = "culebra")
 
 main()
 {

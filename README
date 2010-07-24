@@ -5,3 +5,4 @@ CULEBRA: On-The-Cloud Programming Language with nifty security features
 1. Cross Cutting Security Hooks
 
 - Every function can specify hooks to other modules.functions, this way it is really simple to spread (cross-cut) any functionality the programmer needs to.
+- Care about how data flows during run-time. Something like perl's taint mode but not as simple
