@@ -16,3 +16,4 @@ TODO:
 - Improve Behaviour variables
 * Allow Behaviour vars nesting
 - Add search over the whole Var history and over the database when DB Vars
+* When datafilters are ready work to automatically fill new tables. Example: Asks for a new Client, when the variable ID is filled the data-hook is called and proceed to add a row to the Password table asking for it.
