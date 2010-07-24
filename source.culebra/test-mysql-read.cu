@@ -3,14 +3,14 @@ var testMySQL {
 	field2,
 	field3,
 	field4
-} DB.MySQL(server = "localhost", user = "root", pass = "d.d.334", db = "culebra")
+} DB.MySQL(server = "localhost", user = "culebra", pass = "cul3br4", db = "culebra")
 
 main()
 {
-	testMySQL.field1 = "hola";
-	testMySQL.field2 = "hola";
+	testMySQL.field1 = "34";
+	testMySQL.field2 = "34";
 	testMySQL.field3 = 3333;
-	testMySQL.field4 = 34343333343;
+	testMySQL.field4 = 33333343;
 	testMySQL.flush()
 	
 	@testMySQL () {

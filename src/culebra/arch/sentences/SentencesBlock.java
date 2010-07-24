@@ -1,4 +1,4 @@
-/*
+    /*
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
@@ -16,22 +16,28 @@ import java.util.ListIterator;
  */
 public class SentencesBlock 
 extends Sentence {
-    List    sentences = null;
-    
+    private List    sentences = null;
+    private int repetitions = 1;
+
     public ReturnObject exec() {
-        ListIterator iter = sentences.listIterator();
         ReturnObject ret = null;
 
-        while (iter.hasNext()) {
-            Sentence tmp = (Sentence) iter.next();
-            if (tmp == null) {
-                // XXX: Check why this returns null
-                break;
-            }
-            ret = tmp.exec();
+        for (int i = 0; i < this.repetitions; i++) {
+            ListIterator iter = sentences.listIterator();
 
-            if (ret.isEnd()) {
-                break;
+
+
+            while (iter.hasNext()) {
+                Sentence tmp = (Sentence) iter.next();
+                if (tmp == null) {
+                    // XXX: Check why this returns null
+                    break;
+                }
+                ret = tmp.exec();
+
+                if (ret.isEnd()) {
+                    break;
+                }
             }
         }
 
@@ -42,5 +48,8 @@ extends Sentence {
         this.sentences = sentences;
     }
 
+    public void setRepetitions(int repetitions) {
+        this.repetitions = repetitions;
+    }
     
 }

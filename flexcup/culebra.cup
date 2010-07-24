@@ -205,6 +205,8 @@ non terminal SentencesBlock     sentencesBlock;
 non terminal Sentence           sentences;
 non terminal List               sentencesList;
 
+non terminal Integer				blockRepetition;
+
 non terminal Sentence           assignSentence;
 non terminal AddAssig          	addAssig;
 non terminal SubAssig         	subAssig;
@@ -953,7 +955,7 @@ sentencesBlock:sb
 ;
 
 sentencesBlock ::=
-LCURLY varLocal:vl sentencesList:sl RCURLY
+LCURLY varLocal:vl sentencesList:sl RCURLY blockRepetition:br
 {:
     SentencesBlock sb = new SentencesBlock();
     List    l = new LinkedList();
@@ -962,13 +964,18 @@ LCURLY varLocal:vl sentencesList:sl RCURLY
     l.addAll(sl);
 
     sb.setSentences(l);
+    sb.setRepetitions(Math.abs(br.intValue()));
+	System.out.println("SETS " + br);
 
     RESULT = sb;
 :}
-| LCURLY sentencesList:sl RCURLY
+| LCURLY sentencesList:sl RCURLY blockRepetition:br
 {:
     SentencesBlock sb = new SentencesBlock();
-    sb.setSentences(sl);
+    
+	sb.setSentences(sl);
+	sb.setRepetitions(Math.abs(br.intValue()));
+	System.out.println("SETS " + br);
 
     RESULT = sb;
 :}
@@ -981,6 +988,16 @@ LCURLY varLocal:vl sentencesList:sl RCURLY
 :}
 ;
 
+blockRepetition ::=
+MUL INTEGER:num 
+{:
+	RESULT = new Integer(num.getLexeme());
+:}
+|
+{:
+	RESULT = new Integer(1);
+:}
+;
 
 ////////////
 // ID 2 Variable

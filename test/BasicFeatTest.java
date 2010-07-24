@@ -236,7 +236,8 @@ public class BasicFeatTest {
     fm.getFunction("main").exec();
     }
 
-*/
+     */
+
     @Test
     public void testMySQLRead() {
         String file = "source.culebra/test-mysql-read.cu";
@@ -248,5 +249,18 @@ public class BasicFeatTest {
 
         fm = mm.getFunctionManager();
         fm.getFunction("main").exec();
-    } 
+    }
+
+    @Test
+    public void testBlockRepetition() {
+        String file = "source.culebra/test-block-repetition.cu";
+
+        ModuleManager mm = null;
+        FunctionManager fm = null;
+
+        mm = ModuleParser.parse(file);
+
+        fm = mm.getFunctionManager();
+        fm.getFunction("main").exec();
+    }
 }
