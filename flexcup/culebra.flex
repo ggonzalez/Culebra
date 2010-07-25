@@ -112,6 +112,13 @@ BeginCppComment = "//"
                             }
 
 // KEYWORDS
+	"as"				{
+                            Token token = new Token (sym.AS);
+                            token.setLine (yyline + 1);
+                            token.setColumn (yycolumn + 1);
+                            token.setLexeme (yytext ());
+                            return token;
+                        }
 	"hooks"				{
                             Token token = new Token (sym.HOOKS);
                             token.setLine (yyline + 1);

@@ -8,9 +8,7 @@ package culebra.arch.variable;
 import culebra.arch.expressions.IntegerExpr;
 import culebra.arch.expressions.StringExpr;
 import culebra.arch.variable.behaviour.VarAttr;
-import culebra.arch.variable.behaviour.VarField;
 import culebra.arch.variable.storage.Storage;
-import culebra.arch.variable.storage.RAMStorage;
 import java.util.LinkedHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -45,6 +43,7 @@ extends Variable {
     public boolean containsVariable(String v) {
         return this.variables.containsKey(v);
     }
+
     
     public Variable getVariable(String v) {
         return (Variable) this.variables.get(v);

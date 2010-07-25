@@ -72,6 +72,7 @@ terminal Token MODULE;
 terminal Token FLUSH;
 terminal Token DELETE;
 terminal Token HOOKS;
+terminal Token AS;
 
 terminal Token ENUM;
 //terminal Token PRINTF;
@@ -1186,7 +1187,7 @@ IF LPAREN expr:e RPAREN sentences:s
 // 
 
 iterator ::=
-ITER ID:id varAttr:va
+ITER ID:id varAttr:va AS ID:idIter
 {:
     VariableManager vm = null;
 
@@ -1198,7 +1199,7 @@ ITER ID:id varAttr:va
     Variable    var = getVariable(id.getLexeme());
     Variable    newvar = null;
 
-	newvar = new ProxyVariable(id.getLexeme());
+	newvar = new ProxyVariable(idIter.getLexeme());
     /**
 	 * XXX: We don't till run-time which variable is going to be pointed
 	if (var.getValue() instanceof BehaviourVariable) {
@@ -1213,14 +1214,18 @@ ITER ID:id varAttr:va
     }
 	*/
 
-    if (currentVariables.hasVariable(id.getLexeme())) {
+    /*if (currentVariables.hasVariable(id.getLexeme())) {
         vm = currentVariables;
     } else if (globalVariables.hasVariable(id.getLexeme())) {
         vm = globalVariables;
-    }
+    }*/
 
-    vm.addIteratorVariable(newvar);
+	vm = currentVariables;
+    vm.addVariable(newvar);
 
+	if (vm.hasVariable(newvar.getName())) {
+		System.out.println("OXTIAS " + newvar.getName());
+	}
     VariableIterator iter = new VariableIterator(vm, var, newvar, va);
 
     stackIterator.push(iter);
@@ -1230,8 +1235,8 @@ sentencesBlock:sb
     VariableIterator    iter = (VariableIterator) stackIterator.pop();
 
     iter.setSentences(sb);
-
-    (iter.getVariableManager()).delIteratorVariable(iter.getNewvar());
+	
+    (iter.getVariableManager()).delVariable(iter.getNewvar());
 
     RESULT = iter;
 :}
@@ -1319,7 +1324,8 @@ expr ::=
 :}
 |  ID:id1 DOT ID:id2
 {:
-    if (!globalVariables.hasVariable(id1.getLexeme())) {
+    if (!globalVariables.hasVariable(id1.getLexeme()) &&
+		!currentVariables.hasVariable(id1.getLexeme())) {
         errorManager.syntaxFatalError("Variable not found", id1);
     }
 

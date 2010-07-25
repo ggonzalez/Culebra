@@ -12,14 +12,14 @@ main()
 	test = "tal";
 	test = "estas?";
 	
-	@test {
+	@test as testIter {
 		print(test + " ");
 	}
 	println("");
 	
 	teta = 23423423423424;
 	
-	@teta {
+	@teta as tetaIter{
 		println("----> " + teta);
 	}
 }

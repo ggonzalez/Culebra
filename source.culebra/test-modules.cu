@@ -10,7 +10,7 @@ mainmoduleFunc()
 {
 	println("Hi from main module");
 	println("Gonna print the Behavour Variable oxtias");
-	@oxtias() {
+	@oxtias() as asdf{
 		println("==> " + oxtias);
 	}
 }

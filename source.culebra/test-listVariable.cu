@@ -16,8 +16,8 @@ main()
 	println("Last value: " + test01.value1 + " " + test01.value2);
 	test01.flush();
 	
-	@test01 {
-		println("Values: " + test01.value1 + " " + test01.value2);
+	@test01 as testIter {
+		println("Values: " + testIter.value1 + " " + testIter.value2);
 	}
 	
 	println("BYE");

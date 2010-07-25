@@ -25,11 +25,11 @@ main()
 	println("parameter one " + testBehaviour.param3);
 	testBehaviour.flush();
 
-	@testBehaviour{
+	@testBehaviour as testIter {
 		println("Iterator round: " + (la++));
-		println("PUM " + testBehaviour.param1);
-		println("PUM " + testBehaviour.param2);
-		println("PUM " + testBehaviour.param3);
+		println("PUM " + testIter.param1);
+		println("PUM " + testIter.param2);
+		println("PUM " + testIter.param3);
 	}
 	
 }

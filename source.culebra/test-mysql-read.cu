@@ -13,16 +13,16 @@ main()
 	testMySQL.field4 = 33333343;
 	testMySQL.flush()
 	
-	@testMySQL () {
+	@testMySQL () as testIter  {
 		/*println (testMySQL);*/
-		if (testMySQL.field1 == "hola")
+		if (testIter.field1 == "hola")
 			println ("putaaaa");
 
 	}
 	/*
 	{ ret = genValues(); } * 3;
-	@ret {
-		println(ret);
+	@ret as retIter {
+		println(retIter);
 	}
 	*/
 }
