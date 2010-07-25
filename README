@@ -1,5 +1,9 @@
 CULEBRA: On-The-Cloud Programming Language with nifty security features
 
+* Branch Features *
+--------------------
+- Added iterator AS keyword
+
 
 * Security Features:
 ---------------------
