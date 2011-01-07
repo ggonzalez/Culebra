@@ -30,12 +30,12 @@ action code {:
     VariableManager currentVariables = null;
     Stack           stackIterator = new Stack();
 
-    public Variable getVariable(String name) {
-        if (currentVariables.hasVariable(name))
-            return currentVariables.getVariable(name);
+    public Variable getVariable(List ids) {
+        if (currentVariables.hasVariable(ids))
+            return currentVariables.getVariable(ids);
 
-        if (globalVariables.hasVariable(name))
-            return globalVariables.getVariable(name);
+        if (globalVariables.hasVariable(ids))
+            return globalVariables.getVariable(ids);
 
          return null;
     }
@@ -168,17 +168,15 @@ non terminal                    declaration;
 
 non terminal                    endLine;
 
-non terminal                    dataType;
-non terminal List               dataParamList;
-non terminal DataBehaviour      dataBehaviour;
-non terminal List               behaviourParamList;
-non terminal BehaviourParam     behaviourParam;
-non terminal VarAttr            varAttr;
+non terminal Variable										dataType;
+non terminal List               								dataParamList;
+non terminal Variable										dataParam;
+non terminal DataBehaviour      						dataBehaviour;
+non terminal List              								behaviourParamList;
+non terminal BehaviourParam     						behaviourParam;
+non terminal VarAttr           				 		    varAttr;
 
-non terminal                    varGlobal;
-non terminal List               varGlobalList;
-//BEFORE REGEX non terminal String             varGlobalId;
-non terminal VarField           varGlobalId;
+non terminal List											idList;
 
 non terminal List               varListLocal;
 non terminal List               varLocal;
@@ -227,9 +225,6 @@ non terminal FlushVariable      flushVariable;
 
 non terminal Expr               expr;
 
-non terminal Variable           id2Var;
-non terminal List               id2VarList;
-
 //// OLD VERSION
 
 non terminal                    seccOp;
@@ -237,13 +232,6 @@ non terminal                    seccOpEnd;
 
 non terminal                    declaracion;
 non terminal                    declaracionEnd;
-
-
-
-
-non terminal                    varGlobalEnd;
-
-
 
 non terminal                    funcionDef;
 non terminal                    tipoFunc;
@@ -390,9 +378,10 @@ SEMICOLON
 |
 ;
 declaration ::=
-//varGlobal
-//| dataType
-dataType
+dataType:dt endLine
+{:
+    globalVariables.addVariable((Variable)dt);
+:}
 | function:f
 {:
     functionManager.addFunction(f);
@@ -400,40 +389,77 @@ dataType
 ;
 
 /////////
-// 
-// XXX: } File.XML() => The handler will use the name to match XML tags
-// XXX: } Socket.TCP.XML()
-// XXX: } DB.MySQL() + Socket.TCP()
-// XXX: } File("sjkdf", a);
-
-dataType ::=
-VAR ID:id varAttr:va LCURLY dataParamList:dpl RCURLY dataBehaviour:db endLine
+idList ::=
+idList:idl DOT ID:id
 {:
-    BehaviourVariable bv = new BehaviourVariable(id.getLexeme());
-    StorageFactory sf = StorageFactory.getFactory(db, bv);
-    if (db.isParamListEmpty())
-        bv.addStorage(sf.createStorage(va));
-    else
-        bv.addStorage(sf.createStorage(va, db.getParamList()));
-    {
-        Map m = new LinkedHashMap();
-        Iterator iter = dpl.iterator();
+	idl.add(id.getLexeme());
+	
+	RESULT = idl;
+:}
+| ID:id
+{:
+	List l = new LinkedList();
+	
+	l.add(id.getLexeme());
+	
+	RESULT = l;
+:};
+/////////
+dataType ::=
+VAR ID:id varAttr:va LCURLY dataParamList:dpl RCURLY
+{:
+	CompositeVariable cv = new CompositeVariable(id.getLexeme());
+	StorageFactory		sf = new ListFactory(); // XXX: Hack 
+	Storage					sto = null;
+	
+    sto = sf.createStorage(va);
 
-        while (iter.hasNext()) {
-            VarField    tmpField = (VarField) iter.next();
-            String  tmp = tmpField.getToken();
-            //Variable    var = new SimpleVariable(tmpField);
-            //var.addStorage(new RAMStorage());
-			Variable var = new ProxyVariable(tmpField.getToken());
-            m.put(tmp, var);
-        }
-        bv.setVariables(m);
-    }
+	{
+		Iterator	iter = dpl.iterator();
+		
+		while (iter.hasNext()) {
+			Variable	tmp = (Variable) iter.next();
+			
+			/*
+			 * Only set the Storage to Composite variables
+			 * tmp.addStorage(sto);
+			 */
+			cv.addVariable(tmp);
+		}
+	}
 
-    globalVariables.addVariable((Variable)bv);
+	cv.addStorage(sto);
+	RESULT = (Variable) cv;
 :}
 ;
 
+dataParamList ::=
+dataParamList:dpl COMA dataParam:dp
+{:
+	dpl.add(dp);
+	
+	RESULT = dpl;
+:}
+| dataParam:dp
+{:
+	List	l = new LinkedList();
+	l.add(dp);
+	RESULT = l;
+:}
+;
+
+dataParam ::=
+dataType:dt
+{:
+	RESULT = dt;
+:}
+| ID:id
+{:
+	SimpleVariable	sv = new SimpleVariable(id.getLexeme());
+	sv.addStorage(new RAMStorage());
+	RESULT = (Variable) sv;
+:}
+;
 //XXX Refactor this to be more general.
 varAttr ::=
 LPAREN behaviourParamList:bpl RPAREN
@@ -457,123 +483,6 @@ LPAREN behaviourParamList:bpl RPAREN
 :}
 ;
 
-dataParamList ::=
-dataParamList:dpl varGlobalList:vgl
-{:
-    List l = new LinkedList();
-    l.addAll(dpl);
-    l.addAll(vgl);
-
-    RESULT = l;
-:}
-| varGlobalList:vgl
-{:
-    RESULT = vgl;
-:}
-;
-
-dataBehaviour ::=
-ID:id LPAREN behaviourParamList:bpl RPAREN
-{:
-    DataBehaviour db = new DataBehaviour(id.getLexeme());
-
-    if (bpl != null)
-        db.setParamList(bpl);
-
-    RESULT = db;
-:}
-| ID:id0 DOT ID:id1 LPAREN behaviourParamList:bpl RPAREN
-{:
-    DataBehaviour db = new DataBehaviour(id0.getLexeme(), id1.getLexeme());
-
-    db.setParamList(bpl);
-
-    RESULT = db;
-:}
-;
-
-behaviourParamList ::=
-behaviourParamList:bpl COMA behaviourParam:bp
-{:
-    List    l = new LinkedList();
-
-    l.addAll(bpl);
-    l.add(bp);
-
-    RESULT = l;
-:}
-| behaviourParam:bp
-{:
-    List    l = new LinkedList();
-
-    l.add(bp);
-
-    RESULT = l;
-:}
-|
-{:
-    RESULT = null;
-:}
-;
-
-behaviourParam ::=
-ID:id1 ASSIG ID:id2
-{:
-    BehaviourParam  bp = new BehaviourParam(id1.getLexeme(), id2.getLexeme());
-
-    RESULT = bp;
-:}
-| ID:id1 ASSIG STRING:str
-{:
-    BehaviourParam  bp = new BehaviourParam(id1.getLexeme(), str.getLexeme());
-
-    RESULT = bp;
-:}
-| ID:id1
-{:
-    BehaviourParam  bp = new BehaviourParam(id1.getLexeme(), null);
-
-    RESULT = bp;
-:}
-;
-
-////////
-// Global Variable Declaration
-//
-varGlobal ::=
-modificator:m type:t varGlobalList:vl endLine
-{:
-    SyntaxErrorManager.syntaxInfo(m + " " + t + " ");
-    ListIterator iter = vl.listIterator();
-
-    while (iter.hasNext()) {
-        VarField    tmpField = (VarField) iter.next();
-        String tmp = tmpField.getToken();
-
-        Variable    var = new ListVariable(tmp);
-        //tmp.setTmp(true);
-        globalVariables.addVariable(var);
-    }
-:}
-| type:t varGlobalList:vl endLine
-{:
-    ListIterator iter = vl.listIterator();
-
-    while (iter.hasNext()) {
-        String tmp = (String) iter.next();
-
-        Variable    var = new ListVariable(tmp);
-
-        globalVariables.addVariable(var);
-    }
-:}
-;
-
-modificator ::=
-TMP:i     {: RESULT = i.getLexeme(); :}
-//|         {: RESULT = ""; :}
-;
-
 type ::=
 VAR:v
 {:
@@ -581,48 +490,6 @@ VAR:v
 
     RESULT = (Type) type;
 :}
-;
-/*| VOID:i
-{:
-    VoidType type = new VoidType("void");
-    RESULT = (Type) type;
-:}
-;
-*/
-varGlobalList ::=
-varGlobalList:vl COMA varGlobalId:v
-{:
-    List l = new LinkedList();
-
-    l.addAll(vl);
-    l.add(v);
-
-    RESULT = l;
-:}
-| varGlobalId:v
-{:
-    List l = new LinkedList();
-
-    l.add(v);
-
-    RESULT = l;
-:}
-;
-
-varGlobalId ::=
-ID:id
-{:
-    RESULT = new VarField(id.getLexeme());
-:}
-| ID:id REGEX STRING:str
-{:
-    VarField    ret = new VarField(id.getLexeme());
-    ret.setRegex(str.getLexeme());
-
-    RESULT = ret;
-:}
-| ID ASSIG INTEGER
-| ID ASSIG STRING
 ;
 
 /////////
@@ -656,7 +523,7 @@ modificator:m type:t varLocalList:vl endLine
         Assig tmp = (Assig) iter.next();
 
         //tmp.getVariable().setType(t);
-        tmp.getVariable().setTmp(true);
+        //tmp.getVariable().setTmp(true);
 
         currentVariables.addVariable(tmp.getVariable());
     }
@@ -1000,99 +867,20 @@ MUL INTEGER:num
 :}
 ;
 
-////////////
-// ID 2 Variable
-//
-
-id2Var ::=
-id2VarList:ivl
-{:
-    Variable    var = null;
-    Iterator    iter = ivl.iterator();
-
-    while (iter.hasNext()) {
-        String  tmp = (String) iter.next();
-        if (var == null) {
-                if (globalVariables.hasVariable(tmp) ||currentVariables.hasVariable(tmp)) {
-                    var = getVariable(tmp);
-                } else {
-                        errorManager.syntaxFatalError("Variable not found");
-                }
-        } else {
-            if (var.containsVariable(tmp)) {
-                var = var.getVariable(tmp);
-            }
-        }
-    }
-
-    RESULT = var;
-:}
-;
-
-id2VarList ::=
-id2VarList:ivl DOT ID:id
-{:
-    List    l = new LinkedList();
-    l.addAll(ivl);
-    l.add(id.getLexeme());
-
-    RESULT = l;
-:}
-| ID:id
-{:
-    List    l = new LinkedList();
-    l.add(id.getLexeme());
-
-    RESULT = l;
-:}
-;
-
 ////////
 // Sentences
 //
 
 assignSentence ::=
-ID:id ASSIG expr:e
+idList:idl ASSIG expr:e
 {:
-    if (!globalVariables.hasVariable(id.getLexeme()) &&
-        !currentVariables.hasVariable(id.getLexeme())) {
-        errorManager.syntaxFatalError("Variable not found", id);
+    if (!globalVariables.hasVariable(idl) &&
+        !currentVariables.hasVariable(idl)) {
+        errorManager.syntaxFatalError("Variable not found: " + idl.toString());
     }
     Assig a = new Assig();
 
-    a.setVariable(getVariable(id.getLexeme()));
-    a.setExpr(e);
-
-    RESULT = (Sentence) a;
-:}
-| ID:id1 DOT ID:id2 ASSIG expr:e
-{:
-    if (!globalVariables.hasVariable(id1.getLexeme()) &&
-		!currentVariables.hasVariable(id1.getLexeme())) {
-        errorManager.syntaxFatalError("Variable not found", id1);
-    }
-
-    Assig a = new Assig();
-
-    /* We don't know yet where this is going to point to 
-	BehaviourVariable  var = (BehaviourVariable) getVariable(id1.getLexeme());
-
-    if (!var.containsVariable(id2.getLexeme())) {
-        errorManager.syntaxFatalError("Member of " + id1.getLexeme()  + " not found", id2);
-    }
-*/
-    //var.getVariable(id2.getLexeme());
-
-	Variable var = getVariable(id1.getLexeme());
-	
-    /**XXX: use ProxyVariable instead of PBV
-	ProxyBehaviourVariable pbv = new ProxyBehaviourVariable(var);
-    pbv.setVariableName(id2.getLexeme());
-	*/
-	//ProxyBehaviourVariable pbv = new ProxyBehaviourVariable(var, id2.getLexeme());
-	//XXX This will be done in Assign pv.setVariable(var.getVariable(id2.getLexeme()));
-	//var.setVariable(pbv);
-    a.setVariable(var, id2.getLexeme());
+    a.setVariable(getVariable(idl));
     a.setExpr(e);
 
     RESULT = (Sentence) a;
@@ -1187,45 +975,23 @@ IF LPAREN expr:e RPAREN sentences:s
 // 
 
 iterator ::=
-ITER ID:id varAttr:va AS ID:idIter
+ITER idList:idl varAttr:va AS ID:idIter
 {:
     VariableManager vm = null;
 
-    if (!globalVariables.hasVariable(id.getLexeme()) &&
-        !currentVariables.hasVariable(id.getLexeme())) {
-        errorManager.syntaxFatalError("Variable not found", id);
+    if (!globalVariables.hasVariable(idl) &&
+        !currentVariables.hasVariable(idl)) {
+        errorManager.syntaxFatalError("Variable not found: " + idl.toString());
     }
 //System.out.println("iterator " + id.getLexeme() + " " + va.isEmpty());
-    Variable    var = getVariable(id.getLexeme());
+    Variable    var = getVariable(idl);
     Variable    newvar = null;
 
 	newvar = new ProxyVariable(idIter.getLexeme());
-    /**
-	 * XXX: We don't till run-time which variable is going to be pointed
-	if (var.getValue() instanceof BehaviourVariable) {
-        newvar = new BehaviourVariable(var.getName());
-        ((BehaviourVariable)newvar).setVariables(((BehaviourVariable)var).getVariables());
-    } else {
-//System.out.println("Simple!! " + id.getLexeme());
-        SimpleVariable tmpVar = (SimpleVariable) var;
-        newvar = new SimpleVariable(tmpVar.getVarField());
-        Storage     sto = new RAMStorage();
-        newvar.addStorage(sto);
-    }
-	*/
-
-    /*if (currentVariables.hasVariable(id.getLexeme())) {
-        vm = currentVariables;
-    } else if (globalVariables.hasVariable(id.getLexeme())) {
-        vm = globalVariables;
-    }*/
 
 	vm = currentVariables;
     vm.addVariable(newvar);
 
-	if (vm.hasVariable(newvar.getName())) {
-		System.out.println("OXTIAS " + newvar.getName());
-	}
     VariableIterator iter = new VariableIterator(vm, var, newvar, va);
 
     stackIterator.push(iter);
@@ -1247,14 +1013,14 @@ sentencesBlock:sb
 // 
 
 flushVariable ::=
-ID:id DOT FLUSH endLine
+idList:idl DOT FLUSH endLine
 {:
-    if (!globalVariables.hasVariable(id.getLexeme()) &&
-        !currentVariables.hasVariable(id.getLexeme())) {
-        errorManager.syntaxFatalError("Variable not found", id);
+    if (!globalVariables.hasVariable(idl) &&
+        !currentVariables.hasVariable(idl)) {
+        errorManager.syntaxFatalError("Variable not found: " + idl.toString());
     }
 
-    FlushVariable fb = new FlushVariable(getVariable(id.getLexeme()));
+    FlushVariable fb = new FlushVariable(getVariable(idl));
     
     RESULT = fb;
 :}
@@ -1311,34 +1077,16 @@ RETURN expr:e
 //
 
 expr ::=
-  ID:id
+  idList:idl
 {:
-    if (!globalVariables.hasVariable(id.getLexeme()) &&
-        !currentVariables.hasVariable(id.getLexeme())) {
-        errorManager.syntaxFatalError("Variable not found", id);
+    if (!globalVariables.hasVariable(idl) &&
+        !currentVariables.hasVariable(idl)) {
+        errorManager.syntaxFatalError("Variable not found: " + idl.toString());
     }
 
-    Variable    var = getVariable(id.getLexeme());
+    Variable    var = getVariable(idl);
 
     RESULT = (Expr) var;
-:}
-|  ID:id1 DOT ID:id2
-{:
-    if (!globalVariables.hasVariable(id1.getLexeme()) &&
-		!currentVariables.hasVariable(id1.getLexeme())) {
-        errorManager.syntaxFatalError("Variable not found", id1);
-    }
-
-    /*BehaviourVariable  var = (BehaviourVariable) getVariable(id1.getLexeme());
-
-    if (!var.containsVariable(id2.getLexeme())) {
-        errorManager.syntaxFatalError("Member of " + id1.getLexeme()  + " not found", id2);
-    }
-	*/
-    System.out.println(getVariable(id1.getLexeme()));
-	ProxyBehaviourVariable pbv = new ProxyBehaviourVariable((Variable)getVariable(id1.getLexeme()), id2.getLexeme());
-    //RESULT = (Expr) var.getVariable(id2.getLexeme());
-    RESULT = (Expr) pbv;
 :}
 | INTEGER:i
 {:

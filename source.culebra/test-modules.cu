@@ -2,7 +2,10 @@ import "source.culebra/module/test01.cu"
 
 var oxtias {
 field1,
-field2,
+field2 {
+	subfield1,
+	subfield2,
+} List(),
 field3
 } List();
 

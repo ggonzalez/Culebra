@@ -20,10 +20,6 @@ extends ProxyVariable {
         this.bv = bv;
     }
 
-    @Override
-    public boolean searchValue(Object value) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
 
     @Override
     public void setValue(Object value) {

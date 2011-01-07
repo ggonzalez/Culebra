@@ -7,6 +7,7 @@ package culebra.semantic;
 
 import culebra.arch.variable.SimpleVariable;
 import culebra.arch.variable.Variable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -48,14 +49,35 @@ public class VariableManager {
         }
     }
 
-    public boolean hasVariable(String name) {
-        return this.varMap.containsKey(name);
+    public boolean hasVariable(List id) {
+        boolean ret = false;
+
+        /*
+         * Maybe not the best OO implementation, but we want some more speed
+         */
+        if (this.varMap.containsKey(id.get(0)) == true) {
+           Variable tmp = (Variable) this.varMap.get(id.get(0));
+           List     newIdList = null;
+
+           newIdList = id.subList(1, id.size());
+           System.out.println(newIdList);
+           ret = tmp.hasVariable(newIdList);
+        }
+
+        return ret;
     }
 
-    public Variable getVariable(String name) {
-        LinkedList    l = (LinkedList) this.varMap.get(name);
+    public Variable getVariable(List ids) {
+        Variable    ret = null, tmp = null;
+        LinkedList  l = (LinkedList) this.varMap.get(ids.get(0));
 
-        return (Variable) l.getFirst();
+        tmp = (Variable) l.getFirst();
+        
+        if (ids.size() > 1) {
+            ret = tmp.getVariable(ids.subList(1, ids.size()));
+        }
+
+        return ret;
     }
 
 

@@ -24,22 +24,19 @@ public class SimpleVariable
 extends Variable {
     private Object  value = null;
     private VarField field = null;
-    
+
+    public SimpleVariable(String attr) {
+        super(attr);
+    }
     public SimpleVariable(VarField attr) {
         super(attr.getToken());
         this.field = attr;
     }
 
-
     public VarField getVarField() {
         return field;
     }
     
-    @Override
-    public boolean searchValue(Object value) {
-        return value.equals(this.value);
-    }
-
     @Override
     public void setValue(Object value) {
         Iterator    iter = this.storageList.iterator();
@@ -48,22 +45,22 @@ extends Variable {
             Storage tmp = (Storage) iter.next();
             Object  val = value;
 
-            if (this.field.isRegex() && (value instanceof String)) {
-                String  ret = null;
-                Matcher m = null;
-                Pattern p = this.field.getRePattern();
+            /*if (this.field.isRegex() && (value instanceof String)) {
+            String  ret = null;
+            Matcher m = null;
+            Pattern p = this.field.getRePattern();
 
-                m = p.matcher((String) value);
-                if (m.find()) {
-                    val = m.group();
-                    m.replaceFirst("");
-                    //System.out.println("DEBUG: SetValue " + (String)val + " remaining " + (String)value);
-                } else {
-                    //System.out.println("DEBUG: NO SetValue " + (String)val);
-                    //XXX Do not break other casts, null doesn't make sense in texts
-                    val = "";
-                }
+            m = p.matcher((String) value);
+            if (m.find()) {
+            val = m.group();
+            m.replaceFirst("");
+            //System.out.println("DEBUG: SetValue " + (String)val + " remaining " + (String)value);
+            } else {
+            //System.out.println("DEBUG: NO SetValue " + (String)val);
+            //XXX Do not break other casts, null doesn't make sense in texts
+            val = "";
             }
+            }*/
             
             tmp.setValue(val);
         }
@@ -82,12 +79,12 @@ extends Variable {
 
     @Override
     public Variable getVariable(String name) {
-        throw new UnsupportedOperationException("Not supported.");
+        return  this;
     }
 
     @Override
     public boolean containsVariable(String name) {
-        return false;
+        return this.equals(name);
     }
 
     @Override
@@ -143,8 +140,18 @@ extends Variable {
     }
 
     @Override
-    public void setValue(Object value, List fields) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public boolean hasVariable(List idList) {
+        if (idList.size() != 0)
+            return false;
+        else
+            return true;
     }
 
+    @Override
+    public Variable getVariable(List ids) {
+        if (ids.size() != 0)
+            return null;
+        else
+            return this;
+    }
 }

@@ -1,57 +1,43 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package culebra.arch.variable.storage;
 
 import culebra.arch.variable.behaviour.VarAttr;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 /**
+ * Stores an object in local memory.
+ * 
+ * @author Gabriel Gonzalez
  *
- * @author Gabriel
  */
 public class RAMStorage 
 implements Storage {
-    private LinkedList  l = null;
-    private VarAttr     varAttr = null;
+    private Object  obj = null;
+    private VarAttr varAttr = null;
 
     public RAMStorage() {
-        this.l = new LinkedList();
     }
 
     public Object getValue() {
-        Object  ret = null;
-        
-        if (l.size() > 0)
-            ret = this.l.getFirst();
-        else
-            ret = null;
-
-        return ret;
+        return obj;
     }
 
     public void setValue(Object obj) {
-        if (l.size() != 0)
-            l.removeFirst();
-
-        this.l.add(obj);
+        this.obj = obj;
     }
 
     public Iterator iterator() {
-        return this.l.iterator();
+        throw new UnsupportedOperationException("Iterator no supported for RAM Storage");
     }
 
     public Iterator iterator(List args) {
-        return this.iterator();
+        throw new UnsupportedOperationException("Iterator no supported for RAM Storage");
     }
 
     public void flush() {
-        
+                throw new UnsupportedOperationException("Can't flush RAM Storage yet");
+
     }
 
     public void setVarAttr(VarAttr va) {

@@ -14,7 +14,7 @@ import java.util.List;
  *
  * @author Gabriel
  */
-class ListFactory
+public class ListFactory
 extends StorageFactory {
 
     public ListFactory() {

@@ -6,7 +6,6 @@
 package culebra.arch.variable.storage;
 
 import culebra.arch.variable.behaviour.VarAttr;
-import culebra.arch.variable.storage.*;
 import culebra.arch.variable.storage.iterator.ListIterator;
 import java.util.Iterator;
 import java.util.LinkedList;

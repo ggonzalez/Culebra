@@ -45,26 +45,9 @@ extends Sentence {
 
  //       System.out.println("Assic exec " + expr.getValue());
         if (expr != null) {
-            Variable    var = null;
-            //System.out.println("TEST => " + this.expr);
-            if (this.expr.isVariable())
-                var = (Variable) expr;
-            else {
-                Storage sto = new RAMStorage();
-                var = new SimpleVariable(new VarField(VariableManager.randomName()));
-                var.addStorage(sto);
-                var.setValue(expr.getValue());
-            }
-            if (this.fields == null) {
-                //XXX: needs to be reworked
-                if (variable instanceof ProxyVariable)
-                    ((ProxyVariable) variable).setVariable(var);
-                else
-                    variable.setValue(var);
-            } else {
-                variable.setValue(var, this.fields);
-            }
-        }
+            this.variable.setValue(this.expr.getValue());
+        } else
+            System.out.println("ERROR: Assig expr == NULL");
 
         ret = new ReturnObject(new IntegerExpr(1), true);
         ret.setEnd(false);

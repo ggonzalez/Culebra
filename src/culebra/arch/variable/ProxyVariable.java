@@ -39,11 +39,6 @@ extends Variable {
 
 
     @Override
-    public boolean searchValue(Object value) {
-        return this.pVariable.searchValue(value);
-    }
-
-    @Override
     public void setValue(Object value) {
         this.pVariable.setValue(value);
     }
@@ -118,9 +113,15 @@ extends Variable {
         return this.pVariable.isVariable();
     }
 
+
     @Override
-    public void setValue(Object value, List fields) {
-        this.pVariable.setValue(value, fields);
+    public boolean hasVariable(List idList) {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Variable getVariable(List ids) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }
